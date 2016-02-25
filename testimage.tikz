@@ -1,0 +1,12 @@
+\documentclass[tikz]{standalone}
+\usetikzlibrary{backgrounds,matrix,fadings,calc,positioning,decorations.pathreplacing,arrows.meta,shapes,shapes.multipart,fit}
+\begin{document}
+\begin{tikzpicture}
+  \node[draw] (foo) {foo};
+\special{dvisvgm:raw <g id="teeeeeeeeeest">}
+  \node[draw,right=of foo] (bar) {bar};
+\special{dvisvgm:raw </g>}
+  \draw[draw]
+    (foo) edge (bar);
+\end{tikzpicture}
+\end{document}
