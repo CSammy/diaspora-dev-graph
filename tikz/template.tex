@@ -1,0 +1,35 @@
+\usetikzlibrary{backgrounds,matrix,fadings,calc,positioning,decorations.pathreplacing,arrows.meta,shapes,shapes.multipart,fit}
+
+\usepackage{etoolbox}
+
+\def\sammydbtablecolumnlast{}
+\def\sammydbtablecolumnall{}
+\def\sammydbtablename{}
+\newcommand{\sammydbtablecolumn}[2][]{%
+  \ifdefempty{\sammydbtablecolumnlast}{%
+    \node[draw,below=0pt of \sammydbtablename--name] (\sammydbtablename-#2) {#2};
+  }{%
+    \node[draw,below=0pt of \sammydbtablename-\sammydbtablecolumnlast] (\sammydbtablename-#2) {#2};
+  }%
+  \def\sammydbtablecolumnlast{#2}%
+}
+\newcommand{\codelst}{\begingroup
+    \catcode`_=12 \docodelst}
+\newcommand{\docodels}[1]{#1%
+  \endgroup
+}
+
+\newcommand{\begindbtable}{\begingroup
+  \catcode`_=12 \begindbtableint}
+\newcommand{\begindbtableint}[2][]{%
+  \def\sammydbtablecolumnlast{}%
+  \def\sammydbtablecolumnall{}%
+  \def\sammydbtablename{#2}%
+  \node[draw,#1] (#2--name) {name: #2};
+  \endgroup
+  \let\sammycachecolumn\column%
+  \let\column\sammydbtablecolumn%
+}
+\newcommand{\stopdbtable}{%
+  \let\column\sammycachecolumn%
+}

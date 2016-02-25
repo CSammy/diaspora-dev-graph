@@ -1,5 +1,5 @@
 \documentclass[tikz]{standalone}
-\usetikzlibrary{backgrounds,matrix,fadings,calc,positioning,decorations.pathreplacing,arrows.meta,shapes,shapes.multipart,fit}
+\input{template}
 \begin{document}
 \begin{tikzpicture}
   \node[draw] (foo) {foo};
@@ -8,5 +8,9 @@
 \special{dvisvgm:raw </g>}
   \draw[draw]
     (foo) edge (bar);
+\begindbtable[below=of foo]{share_visibilities}
+\column{updated_at}
+\column{created_at}
+\stopdbtable
 \end{tikzpicture}
 \end{document}
