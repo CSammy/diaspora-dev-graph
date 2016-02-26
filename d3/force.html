@@ -45,9 +45,7 @@ svg {
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
-/*var width = 960,
-    height = 500;
-*/var width = window.innerWidth-20,
+var width = window.innerWidth-20,
     height = window.innerHeight-20;
 
 var randomX = d3.random.normal(width / 2, 80),
@@ -67,10 +65,6 @@ var x = d3.scale.linear()
 
 var y = d3.scale.linear()
     .domain([0, height])
-    .range([height, 0]);
-
-var yi = d3.scale.linear()
-    .domain([0, height])
     .range([0, height]);
 // ----- End Zoom/Pan Code -----
 
@@ -89,7 +83,7 @@ var svg = d3.select("body").append("svg")
   .append("g")
 	;
 
-var myzoom = d3.behavior.zoom().x(x).y(yi).scaleExtent([1, 8]).on("zoom", zoom);
+var myzoom = d3.behavior.zoom().x(x).y(y).scaleExtent([1, 18]).on("zoom", zoom);
 svg.append("rect")
     .attr("class", "overlay")
     .attr("width", width)
@@ -117,11 +111,11 @@ var circle = svg.selectAll(".node2")
 	  force
       .nodes(graph.nodes)
       .links(graph.links)
-      .on("tick", tick2)
+      .on("tick", tick)
       .start();
 
   function forcetransform() {
-      return "translate(" + x(0) + "," + yi(0) + ") scale(" + myzoom.scale() + "," + myzoom.scale() + ")";
+      return "translate(" + x(0) + "," + y(0) + ") scale(" + myzoom.scale() + "," + myzoom.scale() + ")";
   }
 
   var forcesvg = svg
@@ -160,7 +154,7 @@ var circle = svg.selectAll(".node2")
       .text(function(d) { return d.atom; });
 
 
-  function tick2() {
+  function tick() {
     link.selectAll("line")
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
@@ -169,44 +163,14 @@ var circle = svg.selectAll(".node2")
 				;
     node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
   }
-  function tick() {
-    link.selectAll("line")
-        .attr("x1", function(d) { return x(d.source.x); })
-        .attr("y1", function(d) { return y2(d.source.y); })
-        .attr("x2", function(d) { return x(d.target.x); })
-        .attr("y2", function(d) { return y2(d.target.y); })
-//				.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; })
-				;
-
-    node.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y2(d.y) + ")"; });
-  }
 // ----- Start Zoom/Pan Code -----
 function zoom() {
-//		svg.attr("transform", transform2);
     circle.attr("transform", transform);
     forcesvg.attr("transform", forcetransform);
-//    node.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y2(d.y) + ")"; });
-//		links.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y2(d.y) + ")"; })
-//		tick2();
 }
 
 function transform(d) {
-  return "translate(" + x(d[0]) + "," + yi(d[1]) + ")";
-}
-// Dragging code
-function y2(my) {
-  return y(my);
-}
-// Panning code
-function y3(my) {
-  return y(my); ///* proper offset */ + (yi(my) - y(my));
-//    yi(my)             // proper offset
-//    + (yi(my) - my)  // 
-     //+ (yi(my) - my);// + (my - y(my));
-//    ;
-}
-function transform2(d) {
-  return "translate(" + x(d.x) + "," + y2(d.y) + ")";
+  return "translate(" + x(d[0]) + "," + y(d[1]) + ")";
 }
 });
 // ----- End Zoom/Pan Code -----
