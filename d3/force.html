@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Zoom + Pan</title>
+<style>
+
+svg {
+  font: 10px sans-serif;
+}
+
+.overlay {
+  fill: blue;
+  pointer-events: visible;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+
+
+.link line {
+    stroke: #696969;
+}
+
+.link line.separator {
+    stroke: #fff;
+    stroke-width: 2px;
+}
+
+.node circle {
+    stroke: #000;
+    stroke-width: 1.5px;
+}
+
+.node text {
+    font: 10px sans-serif;
+    pointer-events: none;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+/*var width = 960,
+    height = 500;
+*/var width = window.innerWidth-20,
+    height = window.innerHeight-20;
+
+var randomX = d3.random.normal(width / 2, 80),
+    randomY = d3.random.normal(height / 2, 80);
+
+var data = d3.range(200).map(function() {
+  return [
+    randomX(),
+    randomY()
+  ];
+});
+
+// ----- Start Zoom/Pan Code -----
+var x = d3.scale.linear()
+    .domain([0, width])
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .domain([0, height])
+    .range([height, 0]);
+
+var yi = d3.scale.linear()
+    .domain([0, height])
+    .range([0, height]);
+// ----- End Zoom/Pan Code -----
+
+var force = d3.layout.force()
+    .size([width, height])
+    .charge(-400)
+    .linkDistance(function(d) { return radius(d.source.size) + radius(d.target.size) + 20; });
+var radius = d3.scale.sqrt()
+    .range([0, 6]);
+
+d3.json("molecule.json", function(error, graph) {
+// ----- Start Zoom/Pan Code -----
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+	;
+
+var myzoom = d3.behavior.zoom().x(x).y(yi).scaleExtent([1, 8]).on("zoom", zoom);
+svg.append("rect")
+    .attr("class", "overlay")
+    .attr("width", width)
+    .attr("height", height)
+    .call(myzoom)
+	;
+// ----- End Zoom/Pan Code -----
+
+
+/*
+var circle = svg.selectAll("circle")
+    .data(data)
+  .enter().append("circle")
+    .attr("r", 2.5)
+    .attr("transform", transform);
+*/
+
+var circle = svg.selectAll(".node2")
+    .data(data)
+  .enter().append("rect")
+    .attr("width", 4)
+    .attr("height", 4)
+    .attr("transform", transform);
+
+	  force
+      .nodes(graph.nodes)
+      .links(graph.links)
+      .on("tick", tick2)
+      .start();
+
+  function forcetransform() {
+      return "translate(" + x(0) + "," + yi(0) + ") scale(" + myzoom.scale() + "," + myzoom.scale() + ")";
+  }
+
+  var forcesvg = svg
+      .append("g")
+      .attr("transform", forcetransform)
+    ;
+
+  var link = forcesvg
+      .selectAll(".link")
+      .data(graph.links)
+    .enter().append("g")
+      .attr("class", "link");
+
+  link.append("line")
+      .style("stroke-width", function(d) { return (d.bond * 2 - 1) * 2 + "px"; });
+
+  link.filter(function(d) { return d.bond > 1; }).append("line")
+      .attr("class", "separator");
+
+  var node = forcesvg
+      .selectAll(".node")
+      .data(graph.nodes)
+    .enter().append("g")
+      .attr("class", "node")
+      .call(force.drag)
+			;
+
+  node.append("circle")
+      .attr("r", function(d) { return radius(d.size); })
+ //     .style("fill", function(d) { return color(d.atom); });
+			;
+
+  node.append("text")
+      .attr("dy", ".35em")
+      .attr("text-anchor", "middle")
+      .text(function(d) { return d.atom; });
+
+
+  function tick2() {
+    link.selectAll("line")
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; })
+				;
+    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  }
+  function tick() {
+    link.selectAll("line")
+        .attr("x1", function(d) { return x(d.source.x); })
+        .attr("y1", function(d) { return y2(d.source.y); })
+        .attr("x2", function(d) { return x(d.target.x); })
+        .attr("y2", function(d) { return y2(d.target.y); })
+//				.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; })
+				;
+
+    node.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y2(d.y) + ")"; });
+  }
+// ----- Start Zoom/Pan Code -----
+function zoom() {
+//		svg.attr("transform", transform2);
+    circle.attr("transform", transform);
+    forcesvg.attr("transform", forcetransform);
+//    node.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y2(d.y) + ")"; });
+//		links.attr("transform", function(d) { return "translate(" + x(d.x) + "," + y2(d.y) + ")"; })
+//		tick2();
+}
+
+function transform(d) {
+  return "translate(" + x(d[0]) + "," + yi(d[1]) + ")";
+}
+// Dragging code
+function y2(my) {
+  return y(my);
+}
+// Panning code
+function y3(my) {
+  return y(my); ///* proper offset */ + (yi(my) - y(my));
+//    yi(my)             // proper offset
+//    + (yi(my) - my)  // 
+     //+ (yi(my) - my);// + (my - y(my));
+//    ;
+}
+function transform2(d) {
+  return "translate(" + x(d.x) + "," + y2(d.y) + ")";
+}
+});
+// ----- End Zoom/Pan Code -----
+
+</script>
